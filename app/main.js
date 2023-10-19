@@ -11,7 +11,10 @@ function decodeBencode(bencodedValue) {
     const length = parseInt(parts[0], 10);
     return parts[1].substr(0, length);
   } else {
-    throw new Error("Only strings are supported at the moment");
+    // must be number for now
+    // remove first and last chars
+    const num = bencodedValue.slice(1, -1);
+    return parseInt(num, 10);
   }
 }
 
