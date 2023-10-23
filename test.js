@@ -57,7 +57,7 @@ const parseDictionary = (s) => {
 };
 
 // Examples:
-// - decodeBencode("5:hello") -> "hello"q
+// - decodeBencode("5:hello") -> "hello"
 // - decodeBencode("10:hello12345") -> "hello12345"
 // - decodeBencode("i123e") -> 123
 // - decodeBencode("i-123e") -> -123
