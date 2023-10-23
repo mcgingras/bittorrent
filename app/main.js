@@ -1,11 +1,12 @@
 const process = require("process");
 const util = require("util");
+const fs = require("fs");
 
 const parseString = (s) => {
-  const parts = s.split(":");
-  const length = parseInt(parts[0], 10);
-  const value = parts[1].substr(0, length);
-  return { value, length: value.length + s.indexOf(":") + 1 };
+  const firstColon = s.indexOf(":");
+  const length = parseInt(s.slice(0, firstColon));
+  const value = s.substr(firstColon + 1, length);
+  return { value, length: firstColon + 1 + length };
 };
 
 const parseNumber = (s) => {
@@ -42,7 +43,8 @@ const parseDictionary = (s) => {
 
   while (data[0] !== "e") {
     if (data.length === 0) {
-      throw new Error("Unexpected end of data while parsing dictionary");
+      //   throw new Error("Unexpected end of data while parsing dictionary");
+      break;
     }
 
     const { value: k, length: keyLength } = decodeBencode(data);
@@ -81,17 +83,32 @@ function decodeBencode(bencodedValue) {
   }
 }
 
+function getTorrentInfo(filePath) {
+  const data = fs.readFileSync(filePath, "utf8");
+  const { value } = decodeBencode(data);
+  return value;
+}
+
 function main() {
   const command = process.argv[2];
 
-  if (command === "decode") {
-    const bencodedValue = process.argv[3];
-
-    // In JavaScript, there's no need to manually convert bytes to string for printing
-    // because JS doesn't distinguish between bytes and strings in the same way Python does.
-    console.log(JSON.stringify(decodeBencode(bencodedValue).value));
-  } else {
-    throw new Error(`Unknown command ${command}`);
+  try {
+    if (command === "decode") {
+      const bencodedValue = process.argv[3];
+      // In JavaScript, there's no need to manually convert bytes to string for printing
+      // because JS doesn't distinguish between bytes and strings in the same way Python does.
+      console.log(JSON.stringify(decodeBencode(bencodedValue).value));
+    } else if (command === "info") {
+      const filePath = process.argv[3];
+      const data = getTorrentInfo(filePath);
+      console.log(
+        `Tracker URL: ${data.announce} \n Length: ${data.info.length}`
+      );
+    } else {
+      throw new Error(`Unknown command ${command}`);
+    }
+  } catch (e) {
+    console.log(e);
   }
 }
 

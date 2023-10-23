@@ -2,10 +2,10 @@ const process = require("process");
 const util = require("util");
 
 const parseString = (s) => {
-  const parts = s.split(":");
-  const length = parseInt(parts[0], 10);
-  const value = parts[1].substr(0, length);
-  return { value, length: value.length + s.indexOf(":") + 1 };
+  const firstColon = s.indexOf(":");
+  const length = parseInt(s.slice(0, firstColon));
+  const value = s.substr(firstColon + 1, length);
+  return { value, length: firstColon + 1 + length };
 };
 
 const parseNumber = (s) => {
@@ -57,7 +57,7 @@ const parseDictionary = (s) => {
 };
 
 // Examples:
-// - decodeBencode("5:hello") -> "hello"
+// - decodeBencode("5:hello") -> "hello"q
 // - decodeBencode("10:hello12345") -> "hello12345"
 // - decodeBencode("i123e") -> 123
 // - decodeBencode("i-123e") -> -123
