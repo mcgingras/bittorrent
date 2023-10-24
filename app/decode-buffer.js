@@ -53,7 +53,7 @@ const parseDictionary = (buffer, startingIndex) => {
   while (buffer[index] !== BYTES_E) {
     const { value: key, length: keyLength } = parseString(buffer, index);
     index += keyLength;
-    const isBinaryField = key.toString() === "pieces";
+    const isBinaryField = ["pieces", "peers"].includes(key.toString());
     const { value, length } = parseItem(buffer, index, isBinaryField);
     dict[key] = value;
     index += length;
