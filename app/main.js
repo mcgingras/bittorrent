@@ -8,6 +8,15 @@ const getSHA256ofJSON = (input) => {
   return crypto.createHash("sha1").update(input).digest("hex");
 };
 
+const splitBuffer = (buffer, chunkSize = 20) => {
+  const chunks = [];
+  for (let i = 0; i < buffer.length; i += chunkSize) {
+    const chunk = buffer.slice(i, i + chunkSize);
+    chunks.push(chunk.toString("hex"));
+  }
+  return chunks;
+};
+
 function main() {
   const command = process.argv[2];
 
@@ -24,6 +33,12 @@ function main() {
       console.log(`Tracker URL: ${value.announce}`);
       console.log(`Length: ${value.info.length}`);
       console.log(`Info Hash: ${getSHA256ofJSON(bencodeInfo)}`);
+      console.log(`Piece Length: ${value.info["piece length"]}`);
+      const hashes = splitBuffer(value.info.pieces);
+      console.log(`Piece Hashes:`);
+      hashes.forEach((hash) => {
+        console.log(hash);
+      });
     } else {
       throw new Error(`Unknown command ${command}`);
     }
