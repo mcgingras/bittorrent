@@ -1,10 +1,9 @@
 const fs = require("fs");
-const http = require("http");
-const crypto = require("crypto");
 const process = require("process");
-const { request, getSHA1ofJSON, sha1URL } = require("./utils.js");
+const { request, sha1, sha1URL, sha1Buffer } = require("./utils.js");
 const { bencodeToBuffer } = require("./encode-buffer.js");
 const { decodeBufferBencode } = require("./decode-buffer.js");
+const { createHandshake } = require("./handshake.js");
 
 const splitBuffer = (buffer, chunkSize = 20) => {
   const chunks = [];
@@ -47,7 +46,7 @@ async function main() {
       const bencodeInfo = bencodeToBuffer(value.info);
       console.log(`Tracker URL: ${value.announce}`);
       console.log(`Length: ${value.info.length}`);
-      console.log(`Info Hash: ${getSHA1ofJSON(bencodeInfo)}`);
+      console.log(`Info Hash: ${sha1(bencodeInfo)}`);
       console.log(`Piece Length: ${value.info["piece length"]}`);
       const hashes = splitBuffer(value.info.pieces);
       console.log(`Piece Hashes:`);
@@ -76,6 +75,22 @@ async function main() {
       peers.forEach((hash) => {
         console.log(hash);
       });
+    } else if (command === "handshake") {
+      const filePath = process.argv[3];
+      const data = fs.readFileSync(filePath);
+      const value = decodeBufferBencode(data);
+
+      const peer = process.argv[4];
+      const [ip, port] = peer.split(":");
+      const peerId = Buffer.from("00112233445566778899", "hex");
+      const infoHash = sha1Buffer(bencodeToBuffer(value.info));
+      const response = await createHandshake({
+        peerAddress: ip,
+        peerPort: port,
+        infoHash,
+        peerId,
+      });
+      console.log(`Peer ID: ${response}`);
     } else {
       throw new Error(`Unknown command ${command}`);
     }

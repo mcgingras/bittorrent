@@ -2,10 +2,6 @@ const http = require("http");
 const https = require("https");
 const crypto = require("crypto");
 
-const getSHA1ofJSON = (input) => {
-  return crypto.createHash("sha1").update(input).digest("hex");
-};
-
 async function request(url, method = "GET", headers = {}, body = null) {
   var httpModule = http;
   if (url.startsWith("https")) httpModule = https;
@@ -64,8 +60,19 @@ function sha1URL(data) {
   return urlEncodeBytes(buffer);
 }
 
+const sha1 = (input) => {
+  return crypto.createHash("sha1").update(input).digest("hex");
+};
+
+const sha1Buffer = (input) => {
+  const hash = crypto.createHash("sha1");
+  hash.update(input);
+  return hash.digest();
+};
+
 module.exports = {
   request,
-  getSHA1ofJSON,
+  sha1,
   sha1URL,
+  sha1Buffer,
 };
