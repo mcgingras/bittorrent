@@ -30,6 +30,10 @@ async function main() {
       const tracker = new Torrent(process.argv[3]);
       const peers = await tracker.getPeers();
 
+      if (!peers) {
+        throw new Error("No peers found!");
+      }
+
       peers.forEach((hash: string) => {
         console.log(hash);
       });
@@ -54,6 +58,11 @@ async function main() {
           const pieceIndex = parseInt(process.argv[6]);
 
           const peers = await tracker.getPeers();
+
+          if (!peers) {
+            throw new Error("No peers found!");
+          }
+
           console.log("we have " + peers.length + " peers");
 
           for (const peer of peers) {
@@ -64,12 +73,11 @@ async function main() {
               tracker,
             });
             try {
-              await runByTimeOrThrow(() => torrentPeer.connect(), 500);
-              await runByTimeOrThrow(() => torrentPeer.getBitField(), 500);
-              await runByTimeOrThrow(() => torrentPeer.sendInterested(), 500);
-              await runByTimeOrThrow(() => torrentPeer.getUnchoke(), 500);
+              await runByTimeOrThrow(() => torrentPeer.connect(), 5000);
+              await runByTimeOrThrow(() => torrentPeer.getBitField(), 5000);
+              await runByTimeOrThrow(() => torrentPeer.sendInterested(), 5000);
+              await runByTimeOrThrow(() => torrentPeer.getUnchoke(), 5000);
               const piece = await torrentPeer.getPiece(pieceIndex);
-              console.log("about the write to the file!");
               await createOrOpenFile(outputFilePath);
               fs.writeFileSync(outputFilePath, piece);
               torrentPeer.disconnect();
@@ -78,6 +86,7 @@ async function main() {
               );
               return;
             } catch (e) {
+              console.log(e);
               console.error(`Error with peer...`);
               torrentPeer.disconnect();
             }
@@ -91,6 +100,10 @@ async function main() {
       const outputFilePath = process.argv[4];
       const tracker = new Torrent(process.argv[5]);
       const peers = await tracker.getPeers();
+
+      if (!peers) {
+        throw new Error("No peers found!");
+      }
       const downloader = new Downloader(tracker, peers, outputFilePath);
       await downloader.download();
     } else {

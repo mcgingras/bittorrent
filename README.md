@@ -13,3 +13,6 @@
 ./your_bittorrent.sh download_piece -o ./test.txt torrents/sample.torrent 0
 ./your_bittorrent.sh download -o ./test.txt torrents/sample.torrent
 ```
+
+https://webtorrent.io/free-torrents
+https://academictorrents.com/

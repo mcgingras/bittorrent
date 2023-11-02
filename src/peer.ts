@@ -1,10 +1,7 @@
 import net from "net";
 import { toMessage, type Message } from "./message.js";
 import { Torrent as TTorrent } from "./types";
-
-const ERROR_CODES = {
-  1: "Data buffer does not contain full message, please wait.",
-};
+import { runByTimeOrThrow } from "./utils.js";
 
 export default class TorrentPeer {
   ip: string;
@@ -13,6 +10,10 @@ export default class TorrentPeer {
   socket?: net.Socket;
   fileBuffer: Buffer;
   tracker: TTorrent;
+  bitfield: Buffer;
+  isBusy: boolean;
+  isUncooperative: boolean;
+  failureCount: number;
 
   constructor({
     ip,
@@ -31,6 +32,10 @@ export default class TorrentPeer {
     this.tracker = tracker;
     this.socket = undefined;
     this.fileBuffer = Buffer.alloc(0);
+    this.bitfield = Buffer.alloc(0);
+    this.isBusy = false;
+    this.isUncooperative = false;
+    this.failureCount = 0;
   }
 
   async connect() {
@@ -106,11 +111,13 @@ export default class TorrentPeer {
   }
 
   async getBitField() {
+    console.log("getting bitfield");
     const message = await this.waitForDataAndBuffer();
     const id = message.id;
     if (id !== 5) {
       throw new Error("Data buffer does not contain bitfield id.");
     }
+    this.bitfield = message.payload;
     return message.payload;
   }
 
@@ -131,6 +138,7 @@ export default class TorrentPeer {
   }
 
   async getPiece(index: number) {
+    console.log("got new piece");
     // sends first message
     const message = Buffer.alloc(17);
     message.writeUInt32BE(13, 0);
@@ -174,12 +182,22 @@ export default class TorrentPeer {
         requestMessage.writeUInt32BE(blockLength, 13);
         this.sendMessage(requestMessage);
       } else {
-        console.log("done!");
         const piece = this.fileBuffer;
         this.fileBuffer = Buffer.alloc(0);
         return piece;
       }
     }
+  }
+
+  incrementFailureCount() {
+    return ++this.failureCount;
+  }
+
+  markUncooperative() {
+    console.log(
+      `Peer ${this.ip}:${this.port} has been marked as uncooperative.`
+    );
+    this.isUncooperative = true;
   }
 
   sendMessage(message: any) {

@@ -76,12 +76,20 @@ class Torrent {
     };
 
     const queryString = buildUrlQueryString(params);
-    const response = await request(`${this.announce}?${queryString}`);
-    const peerValues = decodeBufferBencode(response) as { peers: Buffer };
-    const peers = parsePeers(peerValues.peers);
-    this.peers = peers;
-
-    return peers;
+    try {
+      const response = await request(`${this.announce}?${queryString}`);
+      const peerValues = decodeBufferBencode(response) as { peers: any };
+      let peers = [] as string[];
+      if (Array.isArray(peerValues.peers)) {
+        peers = peerValues.peers.map((peer) => `${peer.ip}:${peer.port}`);
+      } else {
+        peers = parsePeers(peerValues.peers);
+      }
+      this.peers = peers;
+      return peers;
+    } catch (e) {
+      console.log("error!", e);
+    }
   }
 }
 
