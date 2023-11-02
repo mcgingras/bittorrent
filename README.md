@@ -11,8 +11,10 @@
 ./your_bittorrent.sh peers torrents/sample.torrent
 ./your_bittorrent.sh handshake torrents/sample.torrent 178.62.85.20:51489
 ./your_bittorrent.sh download_piece -o ./test.txt torrents/sample.torrent 0
-./your_bittorrent.sh download -o ./test.txt torrents/sample.torrent
+./your_bittorrent.sh download -o ./bitcoin.pdf torrents/bitcoin.torrent
 ```
+
+### Torrents
 
 https://webtorrent.io/free-torrents
 https://academictorrents.com/
